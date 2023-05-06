@@ -1,0 +1,166 @@
+/*
+  elm-hot creates an additional div wrapper around the app to make HMR possible.
+  This could break styling in development mode if you are using Elm UI.
+
+  More context in the issue:
+    https://github.com/halfzebra/create-elm-app/issues/320
+*/
+[data-elm-hot="true"] {
+  height: inherit;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+:root {
+  --red: hsl(0, 71%, 47%);
+  --blue: hsl(200, 100%, 50%);
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid var(--red);
+  margin: 1rem 0;
+  color: var(--red);
+  cursor: pointer;
+  border-radius: 10px;
+  box-shadow: none;
+  min-width: 30%;
+  font-size: 1rem;
+}
+
+.btn-outline:hover {
+  background-color: var(--red);
+  color: white;
+}
+
+body {
+  font-family: 'Verdana', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+  margin: 0 auto;
+  max-width: 500px;
+  color: hsl(190, 80%, 98%);
+  background: var(--blue);
+  padding: 1rem;
+}
+
+h1 {
+  transform: rotate(10deg);
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
+}
+
+.mt-2 {
+  margin: 2rem 0;
+}
+
+.mt-3 {
+ margin-top: 3rem;
+}
+
+
+input {
+  margin: .5rem 0rem;
+  width: 100%;
+  border: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+  padding: .5rem .5rem;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.flex {
+  display: flex;
+  justify-content: space-between;
+}
+a {
+  color: white;
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.mt-5 {
+  margin-top: 5rem;
+}
+
+
+.my-1 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.btn {
+  border-radius: 10px;
+  border-width: 1px;
+  box-shadow: aqua;
+  min-width: 30%;
+  padding: .25rem 1rem;
+  margin-top: 1rem;
+  background: var(--red);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-disabled {
+  opacity: .8;
+  cursor: default;
+}
+
+.upload-btn {
+  background-color: transparent;
+  border-color: var(--red);
+}
+
+.loading {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease infinite;
+  -webkit-animation: spin 1s ease-in-out infinite;
+}
+
+.width-100 {
+  width: 100%;
+}
+
+@keyframes spin {
+  to { -webkit-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+  to { -webkit-transform: rotate(360deg); }
+}
+
+h4 {
+  margin: 1rem 0;
+}
+
+.text-red {
+  color: var(--red);
+}
+
+.text-small {
+  font-size: .75rem;
+}
+
+.link {
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

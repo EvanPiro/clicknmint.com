@@ -1,0 +1,15 @@
+{
+  "short_name": "clicknmint",
+  "name": "Click & Mint",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#CD2323",
+  "background_color": "#00AAFF"
+}

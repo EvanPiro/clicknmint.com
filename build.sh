@@ -1,0 +1,1 @@
+npm install && ELM_APP_API_KEY=$API_KEY npx elm-app build
