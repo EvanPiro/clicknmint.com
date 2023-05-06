@@ -20,6 +20,8 @@ const app = Elm.Main.init({
 
 async function getNft(tokenId) {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
+  provider.send("eth_requestAccounts", []);
+
   console.log(provider);
   const { chainId } = await provider.getNetwork();
   console.log(chainId);
