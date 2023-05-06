@@ -20,7 +20,9 @@ const app = Elm.Main.init({
 
 async function getNft(tokenId) {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
+  console.log(provider);
   const { chainId } = await provider.getNetwork();
+  console.log(chainId);
   const signer = await provider.getSigner();
   const networkConfig = config[chainId];
   const contract = new ethers.Contract(
@@ -28,7 +30,9 @@ async function getNft(tokenId) {
     abi.abi,
     provider
   ).connect(signer);
+  console.log(contract);
   const nftUri = await contract.tokenURI(tokenId);
+  console.log(nftUri);
   const scanUrl = `${networkConfig.scanURL}/${networkConfig.printNFTAddress}?a=${tokenId}`;
   return {
     nftUri,
@@ -37,9 +41,12 @@ async function getNft(tokenId) {
 }
 
 async function getNftCatchError() {
+  console.log("called getNftCatchError");
   if (!tokenEnd) {
     try {
+      console.log("inside try");
       const res = await getNft(tokenIdCounter);
+      console.log("after getNFT");
 
       app.ports.nftFound.send([res.nftUri, res.scanUrl]);
       tokenIdCounter++;
