@@ -51,6 +51,7 @@ async function getNftCatchError() {
       app.ports.nftFound.send([res.nftUri, res.scanUrl]);
       tokenIdCounter++;
     } catch (error) {
+      console.log(error);
       tokenEnd = true;
       if (error.reason === "ERC721: invalid token ID") {
         app.ports.nftFound.send(null);
