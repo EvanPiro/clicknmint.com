@@ -30,50 +30,27 @@ async function getNft(tokenId) {
     abi.abi,
     provider
   ).connect(signer);
-  const nftUri = await contract.tokenURI(tokenId);
+  const tokenUri = await contract.tokenURI(tokenId);
   const scanUrl = `${networkConfig.scanURL}/${networkConfig.printNFTAddress}?a=${tokenId}`;
   return {
-    nftUri,
-    scanUrl,
+    network: networkConfig.name,
+    contractAddress: networkConfig.contractAddress,
+    tokenId,
+    tokenUri,
   };
 }
 
-async function getNftCatchError() {
-  if (!tokenEnd) {
-    try {
-      const res = await getNft(tokenIdCounter);
-
-      app.ports.nftFound.send([res.nftUri, res.scanUrl]);
-      tokenIdCounter++;
-    } catch (error) {
-      console.log(error);
-      tokenEnd = true;
-      if (error.reason === "ERC721: invalid token ID") {
-        app.ports.nftFound.send(null);
-      } else {
-        app.ports.walletStatusNotFound.send("");
-      }
-    }
+app.ports.detectWallet.subscribe(async function () {
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    await provider.getNetwork();
+    await provider.getSigner();
+    app.ports.walletFound.send("");
+  } catch {
+    app.ports.walletNotFound.send("");
   }
-}
-
-app.ports.detectWallet.subscribe(function () {
-  getNftCatchError();
 });
-
-window.onscroll = function (e) {
-  let documentHeight = document.body.scrollHeight;
-  let currentScroll = window.scrollY + window.innerHeight;
-  // When the user is [modifier]px from the bottom, fire the event.
-  let modifier = 10;
-
-  if (currentScroll + modifier > documentHeight) {
-    console.log("You are at the bottom!");
-    setTimeout(function () {
-      getNftCatchError();
-    }, 500);
-  }
-};
 
 app.ports.mintRequested.subscribe(async function (nftUri) {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -89,7 +66,7 @@ app.ports.mintRequested.subscribe(async function (nftUri) {
 
     mint(networkConfig, signer, contract, provider, nftUri);
   } else {
-    app.ports.walletError.send(
+    app.ports.networkError.send(
       `Network with chain id ${chainId} is not supported. Please switch to one of the following supported networks: mumbai, goerli, sepolia.`
     );
   }
@@ -114,6 +91,7 @@ function mint(networkConfig, signer, contract, provider, nftUri) {
           tokenId,
           txnUrl,
           contractAddress: networkConfig.printNFTAddress,
+          network: networkConfig.name,
         });
       })
       .catch((err) => {

@@ -18,6 +18,8 @@
   --blue: hsl(200, 100%, 50%);
 }
 
+
+
 .btn-outline {
   background-color: transparent;
   border: 1px solid var(--red);
@@ -38,7 +40,7 @@
 body {
   font-family: 'Verdana', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
   margin: 0 auto;
-  max-width: 500px;
+  max-width: 800px;
   color: hsl(190, 80%, 98%);
   background: var(--blue);
   padding: 1rem;
@@ -57,7 +59,11 @@ h1 {
 }
 
 .mt-3 {
- margin-top: 3rem;
+  margin-top: 3rem;
+}
+
+.ml-1 {
+  margin-left: 1rem;
 }
 
 
