@@ -36,6 +36,12 @@ port nftFound : (Maybe NFTFoundResp -> msg) -> Sub msg
 port walletNotFound : (String -> msg) -> Sub msg
 
 
+port detectEthereum : String -> Cmd msg
+
+
+port detectEthereumRes : (Bool -> msg) -> Sub msg
+
+
 port walletFound : (String -> msg) -> Sub msg
 
 
@@ -62,14 +68,15 @@ type SubmitState
     | Submitted
 
 
-type WalletStatus
+type DetectionStatus
     = Detecting
     | Detected
     | NotFound
 
 
 type alias Model =
-    { walletStatus : WalletStatus
+    { walletStatus : DetectionStatus
+    , ethereumStatus : DetectionStatus
     , title : String
     , description : String
     , network : String
@@ -126,13 +133,14 @@ initModel apiKey =
     , nfts = []
     , walletStatus = NotFound
     , apiKey = apiKey
+    , ethereumStatus = Detecting
     }
 
 
 init : String -> ( Model, Cmd Msg )
 init apiKey =
     ( initModel apiKey
-    , Cmd.none
+    , detectEthereum ""
     )
 
 
@@ -162,11 +170,24 @@ type Msg
     | WalletNotFound
     | WalletFound
     | DetectWallet
+    | DetectEthereumRes Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        DetectEthereumRes isDetected ->
+            ( { model
+                | ethereumStatus =
+                    if isDetected then
+                        Detected
+
+                    else
+                        NotFound
+              }
+            , detectWallet ""
+            )
+
         DetectWallet ->
             ( { model | walletStatus = Detecting }, detectWallet "" )
 
@@ -341,14 +362,26 @@ submitView model =
 
 connectWalletView : Model -> Html Msg
 connectWalletView model =
-    case model.walletStatus of
-        Detected ->
+    case ( model.ethereumStatus, model.walletStatus ) of
+        ( Detecting, _ ) ->
+            div [] [ text "Detecting wallet..." ]
+
+        ( NotFound, _ ) ->
+            div []
+                [ a
+                    [ href "https://ethereum.org/en/wallets/find-wallet/"
+                    , target "_blank"
+                    ]
+                    [ button [ class "btn-outline" ] [ text "Install a wallet" ] ]
+                ]
+
+        ( _, Detected ) ->
             submitView model
 
-        Detecting ->
+        ( _, Detecting ) ->
             button [ class "btn-outline", disabled True ] [ spinner ]
 
-        NotFound ->
+        ( _, NotFound ) ->
             button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ]
 
 
@@ -453,5 +486,6 @@ main =
                     , nftFound NFTFound
                     , walletNotFound (\_ -> WalletNotFound)
                     , walletFound (\_ -> WalletFound)
+                    , detectEthereumRes DetectEthereumRes
                     ]
         }

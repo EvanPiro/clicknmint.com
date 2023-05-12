@@ -40,6 +40,10 @@ async function getNft(tokenId) {
   };
 }
 
+app.ports.detectEthereum.subscribe(async function () {
+  app.ports.detectEthereumRes.send(!!window.ethereum);
+});
+
 app.ports.detectWallet.subscribe(async function () {
   try {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
