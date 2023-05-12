@@ -21,6 +21,13 @@ list : List NFT
 list =
     [ { network = "sepolia"
       , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
+      , tokenId = "17"
+      , title = "Disambuation"
+      , description = "MS Paint 2023"
+      , image = "https://cloudflare-ipfs.com/ipfs/bafkreiaquiyls7oaag5hubgdjckhusry2asm5ipstepeiclpv4uftnbtca"
+      }
+    , { network = "sepolia"
+      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
       , tokenId = "16"
       , title = "Tequila Sunrise"
       , description = "MS Paint 2023"
