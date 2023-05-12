@@ -1,7 +1,19 @@
-module NFT exposing (Metadata, NFT, blockDataView, build, buildMetadata, encodeMetadata, getMetadata, listView, view)
+module NFT exposing
+    ( Metadata
+    , NFT
+    , blank
+    , blockDataView
+    , build
+    , buildMetadata
+    , encodeMetadata
+    , getMetadata
+    , listView
+    , searchNFT
+    , view
+    )
 
-import Html exposing (Html, div, h2, h4, img, text)
-import Html.Attributes exposing (class, id, src)
+import Html exposing (Html, a, div, h2, h4, img, text)
+import Html.Attributes exposing (class, href, id, src)
 import Http
 import Json.Decode as D
 import Json.Encode as Encode
@@ -23,6 +35,32 @@ type alias Metadata =
     , description : String
     , image : String
     }
+
+
+blank : NFT
+blank =
+    { network = ""
+    , contractAddress = ""
+    , tokenId = ""
+    , title = ""
+    , description = ""
+    , image = ""
+    }
+
+
+searchNFT : List NFT -> String -> String -> String -> Maybe NFT
+searchNFT nfts n a tid =
+    nfts
+        |> List.filter
+            (\{ network, contractAddress, tokenId } ->
+                network
+                    == n
+                    && contractAddress
+                    == a
+                    && tokenId
+                    == tid
+            )
+        |> List.head
 
 
 build : String -> String -> String -> Metadata -> NFT
@@ -99,10 +137,15 @@ blockDataView nft =
         ]
 
 
+nftToPath : NFT -> String
+nftToPath nft =
+    "/" ++ nft.network ++ "/" ++ nft.contractAddress ++ "/" ++ nft.tokenId
+
+
 view : NFT -> Html msg
 view model =
     div [ class "my-1", id model.image ]
-        [ nftImg model.image
+        [ a [ href <| nftToPath model ] [ nftImg model.image ]
         , h4 [] [ text model.title ]
         , div [] [ text model.description ]
         ]

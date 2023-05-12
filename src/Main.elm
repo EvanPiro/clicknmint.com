@@ -7,7 +7,8 @@ port module Main exposing
     , view
     )
 
-import Browser
+import Browser exposing (UrlRequest)
+import Browser.Navigation as Navigation exposing (load, pushUrl)
 import Curation
 import File exposing (File)
 import File.Select as Select
@@ -15,8 +16,10 @@ import Html exposing (Html, a, button, div, h1, h3, h4, img, input, label, p, sp
 import Html.Attributes exposing (class, classList, disabled, href, src, target, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
-import NFT exposing (NFT)
+import NFT exposing (NFT, blank)
+import Route exposing (Route(..), urlToRoute)
 import Storage
+import Url
 
 
 port detectWallet : String -> Cmd msg
@@ -91,6 +94,10 @@ type alias Model =
     , error : Maybe String
     , nfts : List NFT
     , apiKey : String
+    , navKey : Navigation.Key
+    , route : Route
+    , image : String
+    , url : Url.Url
     }
 
 
@@ -116,15 +123,28 @@ resetState model =
     }
 
 
-initModel : String -> Model
-initModel apiKey =
-    { title = ""
-    , description = ""
+initModel : Url.Url -> String -> Navigation.Key -> Model
+initModel url apiKey navKey =
+    let
+        route =
+            Route.urlToRoute url
+
+        token =
+            case route of
+                Route.NFT net addr tid ->
+                    Maybe.withDefault blank (NFT.searchNFT Curation.list net addr tid)
+
+                _ ->
+                    blank
+    in
+    { title = token.title
+    , description = token.description
     , fileCID = ""
     , nftCID = ""
-    , network = ""
-    , contractAddress = ""
-    , tokenId = ""
+    , network = token.network
+    , contractAddress = token.contractAddress
+    , tokenId = token.tokenId
+    , image = token.image
     , dialogue = ""
     , submitState = Disabled
     , uploading = False
@@ -134,12 +154,15 @@ initModel apiKey =
     , walletStatus = NotFound
     , apiKey = apiKey
     , ethereumStatus = Detecting
+    , navKey = navKey
+    , route = Route.urlToRoute url
+    , url = url
     }
 
 
-init : String -> ( Model, Cmd Msg )
-init apiKey =
-    ( initModel apiKey
+init : String -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
+init apiKey url key =
+    ( initModel url apiKey key
     , detectEthereum ""
     )
 
@@ -154,7 +177,9 @@ getNFTMetadata nftFoundRes =
 
 
 type Msg
-    = MintRequested
+    = UrlClicked UrlRequest
+    | UrlUpdated Url.Url
+    | MintRequested
     | MintRequestSucceeded TokenTransfer
     | MintRequestFailed
     | NetworkError String
@@ -176,6 +201,19 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        UrlClicked urlReq ->
+            ( model
+            , case urlReq of
+                Browser.Internal url ->
+                    pushUrl model.navKey <| Url.toString url
+
+                Browser.External url ->
+                    load url
+            )
+
+        UrlUpdated url ->
+            ( initModel url model.apiKey model.navKey, Cmd.none )
+
         DetectEthereumRes isDetected ->
             ( { model
                 | ethereumStatus =
@@ -302,6 +340,36 @@ walletDialogue =
     errorDialogue "This app is in flux. Mint at your own risk."
 
 
+submittedNftView : Model -> Html Msg
+submittedNftView model =
+    div []
+        [ div [ class "mb-1 link" ] [ div [ onClick ResetState ] [ text "<- back" ] ]
+        , div [ class "my-1" ]
+            [ a
+                [ href model.txnUrl
+                , target "_blank"
+                , class "text-small"
+                ]
+                [ text "View transaction status" ]
+            ]
+        , model.fileCID
+            |> Storage.cidToFileUrl
+            |> NFT.buildMetadata model.title model.description
+            |> NFT.build model.network model.contractAddress model.tokenId
+            |> (\nft -> div [] [ NFT.blockDataView nft, NFT.view nft ])
+        ]
+
+
+nftView : Model -> Html Msg
+nftView model =
+    div []
+        [ model.image
+            |> NFT.buildMetadata model.title model.description
+            |> NFT.build model.network model.contractAddress model.tokenId
+            |> (\nft -> div [] [ NFT.blockDataView nft, NFT.view nft ])
+        ]
+
+
 submitView : Model -> Html Msg
 submitView model =
     let
@@ -315,22 +383,7 @@ submitView model =
     in
     case model.submitState of
         Submitted ->
-            div []
-                [ div [ class "mb-1 link" ] [ div [ onClick ResetState ] [ text "<- back" ] ]
-                , div [ class "my-1" ]
-                    [ a
-                        [ href model.txnUrl
-                        , target "_blank"
-                        , class "text-small"
-                        ]
-                        [ text "View transaction status" ]
-                    ]
-                , model.fileCID
-                    |> Storage.cidToFileUrl
-                    |> NFT.buildMetadata model.title model.description
-                    |> NFT.build model.network model.contractAddress model.tokenId
-                    |> (\nft -> div [] [ NFT.blockDataView nft, NFT.view nft ])
-                ]
+            submittedNftView model
 
         _ ->
             div []
@@ -387,12 +440,21 @@ connectWalletView model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "page-wrapper" ]
-        [ h1 [ class "mt-3 mb-1" ] [ text "Click and Mint!" ]
-        , connectWalletView model
-        , contentView
-        , copyright
-        ]
+    case model.route of
+        Route.NFT _ _ _ ->
+            div [ class "page-wrapper" ]
+                [ h1 [ class "mt-3 mb-1" ] [ text "Click and Mint!" ]
+                , nftView model
+                , copyright
+                ]
+
+        _ ->
+            div [ class "page-wrapper" ]
+                [ h1 [ class "mt-3 mb-1" ] [ text "Click and Mint!" ]
+                , connectWalletView model
+                , contentView
+                , copyright
+                ]
 
 
 contentView : Html Msg
@@ -473,9 +535,11 @@ errorDialogue str =
 
 main : Program String Model Msg
 main =
-    Browser.element
-        { view = view
+    Browser.application
+        { view = \model -> { title = "Click & Mint", body = [ view model ] }
         , init = init
+        , onUrlRequest = UrlClicked
+        , onUrlChange = UrlUpdated
         , update = update
         , subscriptions =
             \_ ->
