@@ -438,23 +438,23 @@ connectWalletView model =
             button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ]
 
 
+layout : List (Html Msg) -> Html Msg
+layout content =
+    div [ class "page-wrapper" ] <|
+        [ a [ href "/" ] [ h1 [ class "mt-3 mb-1" ] [ text "Click and Mint!" ] ]
+        ]
+            ++ content
+            ++ [ copyright ]
+
+
 view : Model -> Html Msg
 view model =
     case model.route of
         Route.NFT _ _ _ ->
-            div [ class "page-wrapper" ]
-                [ h1 [ class "mt-3 mb-1" ] [ text "Click and Mint!" ]
-                , nftView model
-                , copyright
-                ]
+            layout [ nftView model ]
 
         _ ->
-            div [ class "page-wrapper" ]
-                [ h1 [ class "mt-3 mb-1" ] [ text "Click and Mint!" ]
-                , connectWalletView model
-                , contentView
-                , copyright
-                ]
+            layout [ connectWalletView model, contentView ]
 
 
 contentView : Html Msg
