@@ -212,7 +212,7 @@ update msg model =
             )
 
         UrlUpdated url ->
-            ( initModel url model.apiKey model.navKey, Cmd.none )
+            ( initModel url model.apiKey model.navKey, detectEthereum "" )
 
         DetectEthereumRes isDetected ->
             ( { model
