@@ -32,7 +32,7 @@ interface IAppError {
 }
 
 interface IRPCRes {
-  data: string;
+  [key: string]: string;
 }
 
 const toQuery = (e: HandlerEvent): TaskEither<IAppError, INFTQuery> =>
@@ -61,9 +61,7 @@ const toRPCRes = (q: INFTQuery): TaskEither<IAppError, IRPCRes> =>
       const cid = uri.replace("ipfs://", "");
       const metadataUri = ipfsGateway + cid;
       const { data } = await axios.get(metadataUri);
-      return {
-        data: JSON.stringify(data),
-      };
+      return data;
     },
     () => ({
       statusCode: StatusCodes.BAD_GATEWAY,
