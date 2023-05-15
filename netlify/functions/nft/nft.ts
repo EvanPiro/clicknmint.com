@@ -7,6 +7,9 @@ import { TaskEither } from "fp-ts/TaskEither";
 import { ethers } from "ethers";
 import abi from "../../../src/NFTPrinterABI";
 import axios from "axios";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const sepoliaRpcUrl = process.env.SEPOLIA_RPC_URL;
 
