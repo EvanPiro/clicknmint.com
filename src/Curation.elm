@@ -19,7 +19,14 @@ import NFT exposing (NFT)
 
 list : List NFT
 list =
-    [ { network = "goerli"
+    [ { network = "sepolia"
+      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
+      , tokenId = "20"
+      , title = "Jeans"
+      , description = "MS Paint 2023"
+      , image = "https://cloudflare-ipfs.com/ipfs/bafkreiezuxtmxlqs4mdclcgm2tezpfsf73z7yavh2abyqmdyt7ekhgakiu"
+      }
+    , { network = "goerli"
       , contractAddress = "0x25b6364A5979e0e7C2ca3124d3b5d0A365EF1259"
       , tokenId = "0"
       , title = "Piano"
