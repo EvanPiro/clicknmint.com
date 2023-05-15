@@ -5,7 +5,12 @@ Ensure the site is registered or else you won't be able to test the front-end wi
 netlify init
 ```
 
-To create a function, install it:
+To create a function run the netlify cli:
+```shell
+netlify functions:create
+```
+
+For coding functions in typescript, install it:
 ```shell
 npm install @netlify/functions
 ```

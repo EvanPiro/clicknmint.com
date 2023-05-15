@@ -6,7 +6,7 @@ const handler: Handler = async (
 ) => {
   return {
     statusCode: 200,
-    body: JSON.stringify({ name: "hello response" }),
+    body: JSON.stringify({ name: "hello nft response" }),
   };
 };
 
