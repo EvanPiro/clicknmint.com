@@ -21,6 +21,13 @@ list : List NFT
 list =
     [ { network = "sepolia"
       , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
+      , tokenId = "22"
+      , title = "Lambmeter"
+      , description = "MS Paint 2023"
+      , image = "https://cloudflare-ipfs.com/ipfs/bafkreifrnvgqnsfpwk2luoet3i3tvb3fet7b73prnk3mnlaugysg3offle"
+      }
+    , { network = "sepolia"
+      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
       , tokenId = "21"
       , title = "Body Quest"
       , description = "MS Paint 2023"
