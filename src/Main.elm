@@ -265,7 +265,7 @@ update msg model =
                     ( { model | error = Just "NFT metadata request failed. Please try again later." }, Cmd.none )
 
                 Ok nftMetadata ->
-                    ( { model | nfts = model.nfts ++ [ NFT.build network contractAddress tokenId nftMetadata ] }, Cmd.none )
+                    ( { model | nfts = model.nfts ++ [ NFT.build network contractAddress tokenId Nothing nftMetadata ] }, Cmd.none )
 
         MintRequested ->
             ( { model | submitState = Submitting }
@@ -355,7 +355,7 @@ submittedNftView model =
         , model.fileCID
             |> Storage.cidToFileUrl
             |> NFT.buildMetadata model.title model.description
-            |> NFT.build model.network model.contractAddress model.tokenId
+            |> NFT.build model.network model.contractAddress model.tokenId Nothing
             |> (\nft -> div [] [ NFT.blockDataView nft, NFT.view nft ])
         ]
 
@@ -365,7 +365,7 @@ nftView model =
     div []
         [ model.image
             |> NFT.buildMetadata model.title model.description
-            |> NFT.build model.network model.contractAddress model.tokenId
+            |> NFT.build model.network model.contractAddress model.tokenId Nothing
             |> (\nft -> div [] [ NFT.blockDataView nft, NFT.view nft ])
         ]
 

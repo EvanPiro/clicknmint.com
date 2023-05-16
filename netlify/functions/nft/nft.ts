@@ -31,7 +31,7 @@ interface IAppError {
   statusCode: StatusCodes;
 }
 
-interface IRPCRes {
+interface INFTData {
   [key: string]: string;
 }
 
@@ -52,7 +52,7 @@ const validateNetwork = (q: INFTQuery): TaskEither<IAppError, INFTQuery> =>
         body: "Network not supported",
       });
 
-const toRPCRes = (q: INFTQuery): TaskEither<IAppError, IRPCRes> =>
+const toNFTData = (q: INFTQuery): TaskEither<IAppError, INFTData> =>
   te.tryCatch(
     async () => {
       const provider = new ethers.providers.JsonRpcProvider(sepoliaRpcUrl);
@@ -61,9 +61,38 @@ const toRPCRes = (q: INFTQuery): TaskEither<IAppError, IRPCRes> =>
       const cid = uri.replace("ipfs://", "");
       const metadataUri = ipfsGateway + cid;
       const { data } = await axios.get(metadataUri);
-      return data;
+      return {
+        ...data,
+        ...q,
+      };
     },
     () => ({
+      statusCode: StatusCodes.BAD_GATEWAY,
+      body: "Data retrieve issues on our end.",
+    })
+  );
+
+const checkForPrice = (d: INFTData): TaskEither<IAppError, INFTData> =>
+  te.tryCatch(
+    async () => {
+      console.log("check for price began");
+      const provider = new ethers.providers.JsonRpcProvider(sepoliaRpcUrl);
+      const contract = new ethers.Contract(contractAddress, abi.abi, provider);
+      // Because contract will error on tokenId not found, allow for not found.
+      try {
+        const price = await contract.getListing(d.tokenId);
+        return {
+          ...d,
+          price,
+        };
+      } catch (e) {
+        return {
+          ...d,
+          price: null,
+        };
+      }
+    },
+    (e) => ({
       statusCode: StatusCodes.BAD_GATEWAY,
       body: "Data retrieve issues on our end.",
     })
@@ -75,7 +104,8 @@ const handler = async (event: HandlerEvent, context: HandlerContext) =>
   pipe(
     toQuery(event),
     te.chain(validateNetwork),
-    te.chain(toRPCRes),
+    te.chain(toNFTData),
+    te.chain(checkForPrice),
     te.fold(task.of, (body) =>
       task.of({
         statusCode: StatusCodes.OK,

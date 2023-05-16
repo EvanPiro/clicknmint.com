@@ -5,9 +5,11 @@ module NFT exposing
     , blockDataView
     , build
     , buildMetadata
+    , decoder
     , encodeMetadata
     , getMetadata
     , listView
+    , metadataDecoder
     , searchNFT
     , view
     )
@@ -27,7 +29,20 @@ type alias NFT =
     , title : String
     , description : String
     , image : String
+    , price : Maybe String
     }
+
+
+decoder : D.Decoder NFT
+decoder =
+    D.map7 NFT
+        (D.field "network" D.string)
+        (D.field "contractAddress" D.string)
+        (D.field "tokenId" D.string)
+        (D.field "title" D.string)
+        (D.field "description" D.string)
+        (D.field "image" D.string)
+        (D.field "price" (D.maybe D.string))
 
 
 type alias Metadata =
@@ -45,6 +60,7 @@ blank =
     , title = ""
     , description = ""
     , image = ""
+    , price = Nothing
     }
 
 
@@ -63,14 +79,15 @@ searchNFT nfts n a tid =
         |> List.head
 
 
-build : String -> String -> String -> Metadata -> NFT
-build network contractAddress tokenId metadata =
+build : String -> String -> String -> Maybe String -> Metadata -> NFT
+build network contractAddress tokenId price metadata =
     { network = network
     , contractAddress = contractAddress
     , tokenId = tokenId
     , title = metadata.title
     , description = metadata.description
     , image = metadata.image
+    , price = price
     }
 
 
@@ -112,8 +129,8 @@ image: "<https://cloudflare-ipfs.com/ipfs/bafkreif2fgiihlkvnbcgjdzejqrfxvbgbwt2k
 }
 
 -}
-decoder : D.Decoder Metadata
-decoder =
+metadataDecoder : D.Decoder Metadata
+metadataDecoder =
     D.map3 Metadata
         (D.field "title" D.string)
         (D.field "description" D.string)
@@ -124,7 +141,7 @@ getMetadata : String -> (Result Http.Error Metadata -> msg) -> Cmd msg
 getMetadata cid gotNFTMetadataMsg =
     Http.get
         { url = Storage.cidToFileUrl cid
-        , expect = Http.expectJson gotNFTMetadataMsg decoder
+        , expect = Http.expectJson gotNFTMetadataMsg metadataDecoder
         }
 
 
