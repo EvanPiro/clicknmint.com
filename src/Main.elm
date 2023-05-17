@@ -7,33 +7,23 @@ port module Main exposing
     , view
     )
 
+import API
 import Browser exposing (UrlRequest)
 import Browser.Navigation as Navigation exposing (load, pushUrl)
 import Curation
 import File exposing (File)
 import File.Select as Select
-import Html exposing (Html, a, button, div, h1, h3, h4, img, input, label, p, span, text)
-import Html.Attributes exposing (class, classList, disabled, href, src, target, type_, value)
+import Html exposing (Html, a, button, div, h1, img, input, span, text)
+import Html.Attributes exposing (class, classList, disabled, href, id, src, target, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
-import NFT exposing (NFT, blank)
+import NFT exposing (NFT)
 import Route exposing (Route(..), urlToRoute)
 import Storage
 import Url
 
 
 port detectWallet : String -> Cmd msg
-
-
-type alias NFTFoundResp =
-    { network : String
-    , contractAddress : String
-    , tokenId : String
-    , tokenUri : String
-    }
-
-
-port nftFound : (Maybe NFTFoundResp -> msg) -> Sub msg
 
 
 port walletNotFound : (String -> msg) -> Sub msg
@@ -57,7 +47,7 @@ port networkError : (String -> msg) -> Sub msg
 port mintRequestFailed : (String -> msg) -> Sub msg
 
 
-port mintRequestSucceeded : (TokenTransfer -> msg) -> Sub msg
+port mintRequestSucceeded : (MintMetadata -> msg) -> Sub msg
 
 
 
@@ -71,10 +61,24 @@ type SubmitState
     | Submitted
 
 
+type LoadState
+    = NotLoading
+    | Loading
+    | LoadingError String
+    | Loaded
+
+
 type DetectionStatus
     = Detecting
     | Detected
     | NotFound
+
+
+type ContentStatus a
+    = NotRequested
+    | Requesting
+    | ContentFound a
+    | ContentNotFound
 
 
 type alias Model =
@@ -82,26 +86,21 @@ type alias Model =
     , ethereumStatus : DetectionStatus
     , title : String
     , description : String
-    , network : String
-    , contractAddress : String
-    , tokenId : String
     , fileCID : String
     , nftCID : String
     , dialogue : String
-    , submitState : SubmitState
-    , uploading : Bool
-    , txnUrl : String
+    , submitting : SubmitState
+    , uploading : LoadState
     , error : Maybe String
-    , nfts : List NFT
     , apiKey : String
     , navKey : Navigation.Key
     , route : Route
     , image : String
-    , url : Url.Url
+    , nft : ContentStatus NFT
     }
 
 
-type alias TokenTransfer =
+type alias MintMetadata =
     { txnUrl : String
     , tokenId : String
     , contractAddress : String
@@ -117,59 +116,40 @@ resetState model =
         , fileCID = ""
         , nftCID = ""
         , dialogue = ""
-        , submitState = Disabled
-        , txnUrl = ""
+        , submitting = Disabled
         , error = Nothing
     }
 
 
-initModel : Url.Url -> String -> Navigation.Key -> Model
-initModel url apiKey navKey =
+init : String -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
+init apiKey url navKey =
     let
-        route =
-            Route.urlToRoute url
-
-        token =
-            case route of
-                Route.NFT net addr tid ->
-                    Maybe.withDefault blank (NFT.searchNFT Curation.list net addr tid)
+        ( requestStatus, cmd ) =
+            case urlToRoute url of
+                Route.NFT n a id ->
+                    ( Requesting, API.getNFT n a id GotNFTRes )
 
                 _ ->
-                    blank
+                    ( NotRequested, Cmd.none )
     in
-    { title = token.title
-    , description = token.description
-    , fileCID = ""
-    , nftCID = ""
-    , network = token.network
-    , contractAddress = token.contractAddress
-    , tokenId = token.tokenId
-    , image = token.image
-    , dialogue = ""
-    , submitState = Disabled
-    , uploading = False
-    , txnUrl = ""
-    , error = Nothing
-    , nfts = []
-    , walletStatus = NotFound
-    , apiKey = apiKey
-    , ethereumStatus = Detecting
-    , navKey = navKey
-    , route = Route.urlToRoute url
-    , url = url
-    }
-
-
-init : String -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
-init apiKey url key =
-    ( initModel url apiKey key
-    , detectEthereum ""
+    ( { title = ""
+      , description = ""
+      , fileCID = ""
+      , nftCID = ""
+      , image = ""
+      , dialogue = ""
+      , submitting = Disabled
+      , uploading = NotLoading
+      , error = Nothing
+      , walletStatus = NotFound
+      , apiKey = apiKey
+      , ethereumStatus = Detecting
+      , navKey = navKey
+      , route = Route.urlToRoute url
+      , nft = requestStatus
+      }
+    , Cmd.batch [ cmd, detectEthereum "" ]
     )
-
-
-getNFTMetadata : NFTFoundResp -> Cmd Msg
-getNFTMetadata nftFoundRes =
-    NFT.getMetadata (String.dropLeft 7 nftFoundRes.tokenUri) (NFTMetadataResponded nftFoundRes)
 
 
 
@@ -180,7 +160,7 @@ type Msg
     = UrlClicked UrlRequest
     | UrlUpdated Url.Url
     | MintRequested
-    | MintRequestSucceeded TokenTransfer
+    | MintRequestSucceeded MintMetadata
     | MintRequestFailed
     | NetworkError String
     | DescriptionUpdated String
@@ -190,12 +170,11 @@ type Msg
     | FileUploadCompleted (Result Http.Error String)
     | NFTMetadataUploadCompleted (Result Http.Error String)
     | ResetState
-    | NFTMetadataResponded NFTFoundResp (Result Http.Error NFT.Metadata)
-    | NFTFound (Maybe NFTFoundResp)
     | WalletNotFound
     | WalletFound
     | DetectWallet
     | DetectEthereumRes Bool
+    | GotNFTRes (Result Http.Error NFT)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -212,7 +191,24 @@ update msg model =
             )
 
         UrlUpdated url ->
-            ( initModel url model.apiKey model.navKey, detectEthereum "" )
+            let
+                route =
+                    Route.urlToRoute url
+            in
+            case route of
+                Route.NFT net addr tid ->
+                    ( { model | route = route, nft = Requesting }, API.getNFT net addr tid GotNFTRes )
+
+                _ ->
+                    ( { model | route = route }, Cmd.none )
+
+        GotNFTRes res ->
+            case res of
+                Ok nft ->
+                    ( { model | nft = ContentFound nft }, Cmd.none )
+
+                Err _ ->
+                    ( { model | nft = ContentNotFound }, Cmd.none )
 
         DetectEthereumRes isDetected ->
             ( { model
@@ -223,27 +219,11 @@ update msg model =
                     else
                         NotFound
               }
-            , detectWallet ""
+            , Cmd.none
             )
 
         DetectWallet ->
             ( { model | walletStatus = Detecting }, detectWallet "" )
-
-        NFTFound maybeUri ->
-            case maybeUri of
-                Just nftFoundRes ->
-                    ( { model
-                        | walletStatus = Detected
-                      }
-                    , getNFTMetadata nftFoundRes
-                    )
-
-                Nothing ->
-                    ( { model
-                        | walletStatus = Detected
-                      }
-                    , Cmd.none
-                    )
 
         WalletNotFound ->
             ( { model
@@ -259,38 +239,28 @@ update msg model =
             , Cmd.none
             )
 
-        NFTMetadataResponded { network, contractAddress, tokenId } res ->
-            case res of
-                Err _ ->
-                    ( { model | error = Just "NFT metadata request failed. Please try again later." }, Cmd.none )
-
-                Ok nftMetadata ->
-                    ( { model | nfts = model.nfts ++ [ NFT.build network contractAddress tokenId Nothing nftMetadata ] }, Cmd.none )
-
         MintRequested ->
-            ( { model | submitState = Submitting }
+            ( { model | submitting = Submitting }
             , Storage.cidToFileUrl model.fileCID
                 |> NFT.buildMetadata model.title model.description
                 |> NFT.encodeMetadata
                 |> Storage.uploadJSON model.apiKey NFTMetadataUploadCompleted
             )
 
-        MintRequestSucceeded { txnUrl, tokenId, contractAddress, network } ->
+        MintRequestSucceeded { network, contractAddress, tokenId } ->
             ( { model
-                | submitState = Submitted
-                , txnUrl = txnUrl
-                , tokenId = tokenId
-                , contractAddress = contractAddress
-                , network = network
+                | submitting = Submitted
+                , route = Route.NFT network contractAddress tokenId
+                , nft = Requesting
               }
-            , Cmd.none
+            , Cmd.batch [ pushUrl model.navKey <| NFT.nftPartsToPath network contractAddress tokenId, API.getNFT network contractAddress tokenId GotNFTRes ]
             )
 
         MintRequestFailed ->
-            ( { model | submitState = Ready }, Cmd.none )
+            ( { model | submitting = Ready }, Cmd.none )
 
         FileUploadInitiated file ->
-            ( { model | uploading = True }, Storage.uploadFile model.apiKey FileUploadCompleted file )
+            ( { model | uploading = Loading }, Storage.uploadFile model.apiKey FileUploadCompleted file )
 
         FileUploadClicked ->
             ( model, Select.file [ "image/jpeg", "image/png", "image/svg+xml", "text/plain" ] FileUploadInitiated )
@@ -298,10 +268,10 @@ update msg model =
         FileUploadCompleted res ->
             case res of
                 Err _ ->
-                    ( { model | uploading = False }, Cmd.none )
+                    ( { model | uploading = LoadingError "upload error" }, Cmd.none )
 
                 Ok cid ->
-                    ( { model | fileCID = cid, submitState = Ready, uploading = False }
+                    ( { model | fileCID = cid, submitting = Ready, uploading = Loaded }
                     , Cmd.none
                     )
 
@@ -317,7 +287,7 @@ update msg model =
             ( { model | title = str }, Cmd.none )
 
         NetworkError str ->
-            ( { model | error = Just str, submitState = Ready }, Cmd.none )
+            ( { model | error = Just str, submitting = Ready }, Cmd.none )
 
         DescriptionUpdated str ->
             ( { model | description = str }, Cmd.none )
@@ -335,37 +305,12 @@ notReady { title, description, fileCID, nftCID } =
     List.any (\str -> String.length str < 2) [ title, description, fileCID ]
 
 
-walletDialogue : Html Msg
-walletDialogue =
-    errorDialogue "This app is in flux. Mint at your own risk."
-
-
-submittedNftView : Model -> Html Msg
-submittedNftView model =
-    div []
-        [ div [ class "mb-1 link" ] [ div [ onClick ResetState ] [ text "<- back" ] ]
-        , div [ class "my-1" ]
-            [ a
-                [ href model.txnUrl
-                , target "_blank"
-                , class "text-small"
-                ]
-                [ text "View transaction status" ]
-            ]
-        , model.fileCID
-            |> Storage.cidToFileUrl
-            |> NFT.buildMetadata model.title model.description
-            |> NFT.build model.network model.contractAddress model.tokenId Nothing
-            |> (\nft -> div [] [ NFT.blockDataView nft, NFT.view nft ])
-        ]
-
-
-nftView : Model -> Html Msg
+nftView : NFT -> Html Msg
 nftView model =
-    div []
+    div [ id (model.contractAddress ++ model.tokenId) ]
         [ model.image
             |> NFT.buildMetadata model.title model.description
-            |> NFT.build model.network model.contractAddress model.tokenId Nothing
+            |> NFT.build model.network model.contractAddress model.tokenId "" Nothing
             |> (\nft -> div [] [ NFT.blockDataView nft, NFT.view nft ])
         ]
 
@@ -381,31 +326,31 @@ submitView model =
                 Nothing ->
                     span [] []
     in
-    case model.submitState of
+    case model.submitting of
         Submitted ->
-            submittedNftView model
+            span [] []
 
         _ ->
             div []
                 [ div []
-                    [ case ( model.uploading, model.submitState ) of
-                        ( False, Submitting ) ->
+                    [ case ( model.uploading, model.submitting ) of
+                        ( NotLoading, Submitting ) ->
                             span [] []
 
-                        ( True, _ ) ->
+                        ( Loading, _ ) ->
                             button [ class "btn-outline", disabled True ] [ spinner ]
 
-                        ( False, _ ) ->
-                            button [ class "btn-outline", onClick FileUploadClicked, disabled (model.submitState == Submitting) ] [ text "Upload NFT File" ]
+                        ( _, _ ) ->
+                            button [ class "btn-outline", onClick FileUploadClicked, disabled (model.submitting == Submitting) ] [ text "Upload NFT File" ]
                     ]
                 , maybePreview model
                 , div []
                     [ div [] [ text "Title" ]
-                    , input [ type_ "text", onInput TitleUpdated, value model.title, disabled (model.submitState == Submitting) ] []
+                    , input [ type_ "text", onInput TitleUpdated, value model.title, disabled (model.submitting == Submitting) ] []
                     ]
                 , div []
                     [ div [] [ text "Description" ]
-                    , input [ type_ "text", onInput DescriptionUpdated, value model.description, disabled (model.submitState == Submitting) ] []
+                    , input [ type_ "text", onInput DescriptionUpdated, value model.description, disabled (model.submitting == Submitting) ] []
                     ]
                 , errorView
                 , div []
@@ -449,12 +394,27 @@ layout content =
 
 view : Model -> Html Msg
 view model =
-    case model.route of
-        Route.NFT _ _ _ ->
-            layout [ nftView model ]
+    let
+        content =
+            case model.route of
+                Route.NFT _ _ _ ->
+                    case model.nft of
+                        NotRequested ->
+                            span [] []
 
-        _ ->
-            layout [ connectWalletView model, contentView ]
+                        Requesting ->
+                            div [] [ text "Loading NFT data..." ]
+
+                        ContentFound nft ->
+                            nftView nft
+
+                        ContentNotFound ->
+                            div [] [ text "Not found" ]
+
+                _ ->
+                    div [] [ connectWalletView model, contentView ]
+    in
+    layout [ content ]
 
 
 contentView : Html Msg
@@ -492,7 +452,7 @@ spinner =
 
 submitButton : Model -> Html Msg
 submitButton model =
-    case model.submitState of
+    case model.submitting of
         Disabled ->
             button
                 [ class "btn"
@@ -547,7 +507,6 @@ main =
                     [ mintRequestFailed (\_ -> MintRequestFailed)
                     , mintRequestSucceeded MintRequestSucceeded
                     , networkError NetworkError
-                    , nftFound NFTFound
                     , walletNotFound (\_ -> WalletNotFound)
                     , walletFound (\_ -> WalletFound)
                     , detectEthereumRes DetectEthereumRes

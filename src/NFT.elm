@@ -10,6 +10,7 @@ module NFT exposing
     , getMetadata
     , listView
     , metadataDecoder
+    , nftPartsToPath
     , searchNFT
     , view
     )
@@ -30,12 +31,13 @@ type alias NFT =
     , description : String
     , image : String
     , price : Maybe String
+    , owner : String
     }
 
 
 decoder : D.Decoder NFT
 decoder =
-    D.map7 NFT
+    D.map8 NFT
         (D.field "network" D.string)
         (D.field "contractAddress" D.string)
         (D.field "tokenId" D.string)
@@ -43,6 +45,7 @@ decoder =
         (D.field "description" D.string)
         (D.field "image" D.string)
         (D.field "price" (D.maybe D.string))
+        (D.field "owner" D.string)
 
 
 type alias Metadata =
@@ -61,6 +64,7 @@ blank =
     , description = ""
     , image = ""
     , price = Nothing
+    , owner = ""
     }
 
 
@@ -79,8 +83,8 @@ searchNFT nfts n a tid =
         |> List.head
 
 
-build : String -> String -> String -> Maybe String -> Metadata -> NFT
-build network contractAddress tokenId price metadata =
+build : String -> String -> String -> String -> Maybe String -> Metadata -> NFT
+build network contractAddress tokenId owner price metadata =
     { network = network
     , contractAddress = contractAddress
     , tokenId = tokenId
@@ -88,6 +92,7 @@ build network contractAddress tokenId price metadata =
     , description = metadata.description
     , image = metadata.image
     , price = price
+    , owner = owner
     }
 
 
@@ -157,6 +162,11 @@ blockDataView nft =
 nftToPath : NFT -> String
 nftToPath nft =
     "/" ++ nft.network ++ "/" ++ nft.contractAddress ++ "/" ++ nft.tokenId
+
+
+nftPartsToPath : String -> String -> String -> String
+nftPartsToPath network contractAddress tokenId =
+    "/" ++ network ++ "/" ++ contractAddress ++ "/" ++ tokenId
 
 
 view : NFT -> Html msg

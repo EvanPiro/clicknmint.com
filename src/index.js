@@ -18,28 +18,6 @@ const app = Elm.Main.init({
   flags: apiKey,
 });
 
-async function getNft(tokenId) {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  await provider.send("eth_requestAccounts", []);
-
-  const { chainId } = await provider.getNetwork();
-  const signer = await provider.getSigner();
-  const networkConfig = config[chainId];
-  const contract = new ethers.Contract(
-    networkConfig.printNFTAddress,
-    abi.abi,
-    provider
-  ).connect(signer);
-  const tokenUri = await contract.tokenURI(tokenId);
-  const scanUrl = `${networkConfig.scanURL}/${networkConfig.printNFTAddress}?a=${tokenId}`;
-  return {
-    network: networkConfig.name,
-    contractAddress: networkConfig.contractAddress,
-    tokenId,
-    tokenUri,
-  };
-}
-
 app.ports.detectEthereum.subscribe(async function () {
   app.ports.detectEthereumRes.send(!!window.ethereum);
 });
@@ -96,6 +74,7 @@ function mint(networkConfig, signer, contract, provider, nftUri) {
           txnUrl,
           contractAddress: networkConfig.printNFTAddress,
           network: networkConfig.name,
+          owner: signer.getAddress(),
         });
       })
       .catch((err) => {
