@@ -21,7 +21,7 @@ list : List NFT
 list =
     [ { network = "sepolia"
       , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "22"
+      , tokenId = "26"
       , title = "Cow in a Sunset"
       , description = "MS Paint 2023"
       , image = "https://cloudflare-ipfs.com/ipfs/bafkreibx7gmbids5ozyyd3vkispugfmkrcsm5kb7lpg3ovsko6fg6y6pfa"
