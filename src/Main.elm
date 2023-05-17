@@ -382,7 +382,7 @@ notReady { title, description, fileCID, nftCID } =
 
 nftView : Model -> NFT -> Html Msg
 nftView model nft =
-    div [ id (nft.contractAddress ++ nft.tokenId) ] [ listingView model nft, NFT.view nft, NFT.blockDataView nft ]
+    div [ id (nft.contractAddress ++ nft.tokenId) ] [ div [ class "mt-3" ] [ listingView model nft ], NFT.view nft, NFT.blockDataView nft ]
 
 
 listingView : Model -> NFT -> Html Msg
