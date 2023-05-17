@@ -1,9 +1,7 @@
 module NFT exposing
     ( Metadata
     , NFT
-    , blank
     , blockDataView
-    , build
     , buildMetadata
     , decoder
     , encodeMetadata
@@ -11,7 +9,6 @@ module NFT exposing
     , listView
     , metadataDecoder
     , nftPartsToPath
-    , searchNFT
     , view
     )
 
@@ -52,47 +49,6 @@ type alias Metadata =
     { title : String
     , description : String
     , image : String
-    }
-
-
-blank : NFT
-blank =
-    { network = ""
-    , contractAddress = ""
-    , tokenId = ""
-    , title = ""
-    , description = ""
-    , image = ""
-    , price = Nothing
-    , owner = ""
-    }
-
-
-searchNFT : List NFT -> String -> String -> String -> Maybe NFT
-searchNFT nfts n a tid =
-    nfts
-        |> List.filter
-            (\{ network, contractAddress, tokenId } ->
-                network
-                    == n
-                    && contractAddress
-                    == a
-                    && tokenId
-                    == tid
-            )
-        |> List.head
-
-
-build : String -> String -> String -> String -> Maybe String -> Metadata -> NFT
-build network contractAddress tokenId owner price metadata =
-    { network = network
-    , contractAddress = contractAddress
-    , tokenId = tokenId
-    , title = metadata.title
-    , description = metadata.description
-    , image = metadata.image
-    , price = price
-    , owner = owner
     }
 
 
@@ -156,6 +112,7 @@ blockDataView nft =
         [ div [] [ text "Network: ", text nft.network ]
         , div [] [ text "Address: ", text nft.contractAddress ]
         , div [] [ text "Token Id: ", text nft.tokenId ]
+        , div [] [ text "Owner: ", text nft.owner ]
         ]
 
 

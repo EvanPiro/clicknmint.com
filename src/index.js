@@ -10,9 +10,6 @@ dotenv.config();
 
 const apiKey = process.env.ELM_APP_API_KEY;
 
-let tokenIdCounter = 0;
-let tokenEnd = false;
-
 const app = Elm.Main.init({
   node: document.getElementById("root"),
   flags: apiKey,
@@ -27,9 +24,10 @@ app.ports.detectWallet.subscribe(async function () {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     await provider.getNetwork();
-    await provider.getSigner();
-    app.ports.walletFound.send("");
-  } catch {
+    const signer = await provider.getSigner();
+    const address = await signer.getAddress();
+    app.ports.walletFound.send(address);
+  } catch (e) {
     app.ports.walletNotFound.send("");
   }
 });
@@ -53,6 +51,76 @@ app.ports.mintRequested.subscribe(async function (nftUri) {
     );
   }
 });
+
+app.ports.setListing.subscribe(async function (nft) {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const { chainId } = await provider.getNetwork();
+  if (config[chainId].name === nft.network) {
+    const signer = provider.getSigner();
+    const networkConfig = config[chainId];
+    const contract = new ethers.Contract(
+      nft.contractAddress,
+      abi.abi,
+      provider
+    ).connect(signer);
+
+    setListing(networkConfig, signer, contract, provider, nft);
+  } else {
+    app.ports.networkError.send(
+      `Please switch network to ${nft.network} to set listing price`
+    );
+  }
+});
+
+app.ports.buyListing.subscribe(async function (nft) {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const { chainId } = await provider.getNetwork();
+  if (config[chainId].name === nft.network) {
+    const signer = provider.getSigner();
+    const networkConfig = config[chainId];
+    const contract = new ethers.Contract(
+      nft.contractAddress,
+      abi.abi,
+      provider
+    ).connect(signer);
+
+    buyListing(networkConfig, signer, contract, provider, nft);
+  } else {
+    app.ports.networkError.send(
+      `Please switch network to ${nft.network} to set listing price`
+    );
+  }
+});
+
+function setListing(networkConfig, signer, contract, provider, nft) {
+  provider.send("eth_requestAccounts", []).then(async () => {
+    contract
+      .setListing(nft.tokenId, ethers.utils.parseUnits(nft.price, "ether"))
+      .then(async (res) => {
+        await res.wait();
+        app.ports.setListingRes.send("success");
+      })
+      .catch((err) => {
+        app.ports.setListingRes.send(null);
+      });
+  });
+}
+
+function buyListing(networkConfig, signer, contract, provider, nft) {
+  provider.send("eth_requestAccounts", []).then(async () => {
+    contract
+      .buyListing(nft.tokenId, {
+        value: ethers.utils.parseUnits(nft.price, "ether"),
+      })
+      .then(async (res) => {
+        await res.wait();
+        app.ports.buyListingRes.send("success");
+      })
+      .catch((err) => {
+        app.ports.buyListingRes.send(null);
+      });
+  });
+}
 
 function mint(networkConfig, signer, contract, provider, nftUri) {
   provider.send("eth_requestAccounts", []).then(async () => {
@@ -78,7 +146,6 @@ function mint(networkConfig, signer, contract, provider, nftUri) {
         });
       })
       .catch((err) => {
-        console.log(err);
         app.ports.mintRequestFailed.send("");
       });
   });

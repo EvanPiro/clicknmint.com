@@ -106,7 +106,8 @@ const toNFTData = ({
 
       // @Todo break into it's own function
       try {
-        const price = await contract.getListing(tokenId);
+        const weiPrice = await contract.getListing(tokenId);
+        const price = ethers.utils.formatEther(weiPrice);
         return { ...base, price };
       } catch (e) {
         return { ...base, price: null };
