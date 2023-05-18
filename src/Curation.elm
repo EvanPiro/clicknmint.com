@@ -20,6 +20,15 @@ import NFT exposing (NFT)
 list : List NFT
 list =
     [ { network = "sepolia"
+      , contractAddress = "0x27da9ADd025d554387f1e2EBAf59CE6Ee1Aa8d83"
+      , tokenId = "1"
+      , title = "Cadence"
+      , description = "MS Paint 2023"
+      , image = "https://cloudflare-ipfs.com/ipfs/bafkreif2kcnlsa74d4us33wngjnmm6ae6cc52sqa4l4zpoxrzaj7uqj4n4"
+      , price = Nothing
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      }
+    , { network = "sepolia"
       , contractAddress = "0x0BfDe5F9cE572F10Cc4073c70788604E49a6ddDC"
       , tokenId = "0"
       , title = "Cow in a Sunset"
@@ -70,15 +79,6 @@ list =
       , title = "Candor"
       , description = "MS Paint 2023"
       , image = "https://cloudflare-ipfs.com/ipfs/bafkreiajbtv5l477zvdqy4ye5u5glh7sgf4ij35uzolkyaotjk76mtacum"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "18"
-      , title = "Cadence"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreif2kcnlsa74d4us33wngjnmm6ae6cc52sqa4l4zpoxrzaj7uqj4n4"
       , price = Nothing
       , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
       }
