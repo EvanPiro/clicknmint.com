@@ -21,7 +21,7 @@ list : List NFT
 list =
     [ { network = "goerli"
       , contractAddress = "0xc5E452E9F33D8480554d933E0DDf6272209DAA07"
-      , tokenId = "16"
+      , tokenId = "2"
       , title = "Tequila Sunrise"
       , description = "MS Paint 2023"
       , image = "https://cloudflare-ipfs.com/ipfs/bafkreigqhwytpndh5rttb4eyio6axsjiuuyz5tqp354dielzvg6223tpyi"
