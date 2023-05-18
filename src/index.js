@@ -92,6 +92,26 @@ app.ports.buyListing.subscribe(async function (nft) {
   }
 });
 
+app.ports.removeListing.subscribe(async function (nft) {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const { chainId } = await provider.getNetwork();
+  if (config[chainId].name === nft.network) {
+    const signer = provider.getSigner();
+    const networkConfig = config[chainId];
+    const contract = new ethers.Contract(
+      nft.contractAddress,
+      abi.abi,
+      provider
+    ).connect(signer);
+
+    removeListing(networkConfig, signer, contract, provider, nft);
+  } else {
+    app.ports.networkError.send(
+      `Please switch network to ${nft.network} to remove listing`
+    );
+  }
+});
+
 function setListing(networkConfig, signer, contract, provider, nft) {
   provider.send("eth_requestAccounts", []).then(async () => {
     contract
@@ -118,6 +138,20 @@ function buyListing(networkConfig, signer, contract, provider, nft) {
       })
       .catch((err) => {
         app.ports.buyListingRes.send(null);
+      });
+  });
+}
+
+function removeListing(networkConfig, signer, contract, provider, nft) {
+  provider.send("eth_requestAccounts", []).then(async () => {
+    contract
+      .removeListing(nft.tokenId)
+      .then(async (res) => {
+        await res.wait();
+        app.ports.removeListingRes.send("success");
+      })
+      .catch((err) => {
+        app.ports.removeListingRes.send(null);
       });
   });
 }

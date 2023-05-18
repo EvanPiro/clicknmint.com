@@ -144,6 +144,10 @@ a {
   width: 100%;
 }
 
+.width-50 {
+  width: 50%;
+}
+
 @keyframes spin {
   to { -webkit-transform: rotate(360deg); }
 }

@@ -14,7 +14,7 @@ import Curation
 import File exposing (File)
 import File.Select as Select
 import Html exposing (Html, a, button, div, h1, h3, img, input, span, text)
-import Html.Attributes exposing (class, classList, disabled, href, id, src, target, type_, value)
+import Html.Attributes exposing (class, classList, disabled, href, id, placeholder, src, target, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
 import NFT exposing (NFT)
@@ -38,10 +38,16 @@ port buyListing : NFT -> Cmd msg
 port setListing : NFT -> Cmd msg
 
 
+port removeListing : NFT -> Cmd msg
+
+
 port buyListingRes : (Maybe String -> msg) -> Sub msg
 
 
 port setListingRes : (Maybe String -> msg) -> Sub msg
+
+
+port removeListingRes : (Maybe String -> msg) -> Sub msg
 
 
 port detectEthereumRes : (Bool -> msg) -> Sub msg
@@ -104,7 +110,7 @@ contentStatusToMaybe c =
 
 
 type alias Model =
-    { walletStatus : DetectionStatus
+    { userAddress : ContentStatus String
     , ethereumStatus : DetectionStatus
     , title : String
     , description : String
@@ -119,7 +125,6 @@ type alias Model =
     , route : Route
     , image : String
     , nft : ContentStatus NFT
-    , userAddress : Maybe String
     , price : String
     }
 
@@ -148,7 +153,7 @@ resetState model =
 init : String -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
 init apiKey url navKey =
     let
-        ( requestStatus, cmd ) =
+        ( nftRequestStatus, cmd ) =
             case urlToRoute url of
                 Route.NFT n a id ->
                     ( Requesting, API.getNFT n a id GotNFTRes )
@@ -165,13 +170,12 @@ init apiKey url navKey =
       , submitting = Disabled
       , uploading = NotLoading
       , error = Nothing
-      , walletStatus = NotFound
       , apiKey = apiKey
       , ethereumStatus = Detecting
       , navKey = navKey
       , route = Route.urlToRoute url
-      , nft = requestStatus
-      , userAddress = Nothing
+      , nft = nftRequestStatus
+      , userAddress = NotRequested
       , price = ""
       }
     , Cmd.batch [ cmd, detectEthereum "" ]
@@ -204,8 +208,9 @@ type Msg
     | BuyListing NFT
     | BuyListingRes (Maybe String)
     | SetListing NFT String
-    | SetListingRes (Maybe String)
     | RemoveListing NFT
+    | SetListingRes (Maybe String)
+    | RemoveListingRes (Maybe String)
     | PriceUpdated String
 
 
@@ -255,19 +260,18 @@ update msg model =
             )
 
         DetectWallet ->
-            ( { model | walletStatus = Detecting }, detectWallet "" )
+            ( { model | userAddress = Requesting }, detectWallet "" )
 
         WalletNotFound ->
             ( { model
-                | walletStatus = NotFound
+                | userAddress = ContentNotFound
               }
             , Cmd.none
             )
 
         WalletFound address ->
             ( { model
-                | walletStatus = Detected
-                , userAddress = Just address
+                | userAddress = ContentFound address
               }
             , Cmd.none
             )
@@ -341,6 +345,9 @@ update msg model =
         SetListing nft price ->
             ( { model | submitting = Submitting }, setListing { nft | price = Just price } )
 
+        RemoveListing nft ->
+            ( { model | submitting = Submitting }, removeListing nft )
+
         SetListingRes _ ->
             let
                 cmd =
@@ -367,8 +374,18 @@ update msg model =
             in
             ( { model | submitting = Submitted }, cmd )
 
-        RemoveListing nft ->
-            ( model, Cmd.none )
+        RemoveListingRes _ ->
+            let
+                cmd =
+                    model.nft
+                        |> contentStatusToMaybe
+                        |> Maybe.map
+                            (\{ network, contractAddress, tokenId } ->
+                                API.getNFT network contractAddress tokenId GotNFTRes
+                            )
+                        |> Maybe.withDefault Cmd.none
+            in
+            ( { model | submitting = Submitted }, cmd )
 
 
 
@@ -382,51 +399,76 @@ notReady { title, description, fileCID, nftCID } =
 
 nftView : Model -> NFT -> Html Msg
 nftView model nft =
-    div [ id (nft.contractAddress ++ nft.tokenId) ] [ div [ class "mt-3" ] [ listingView model nft ], NFT.view nft, NFT.blockDataView nft ]
+    div [ id (nft.contractAddress ++ nft.tokenId) ]
+        [ div [ class "mt-1" ] [ listingView model nft ]
+        , NFT.view nft
+        , NFT.blockDataView nft
+        ]
+
+
+setPriceView : Model -> NFT -> Html Msg
+setPriceView model nft =
+    div []
+        [ div [] [ text "This one's yours!" ]
+        , div [ class "mt-1" ] [ text "Price (ETH)" ]
+        , input
+            [ type_ "text"
+            , onInput PriceUpdated
+            , placeholder "Set price in ETH e.g 0.2"
+            , value model.price
+            , disabled (model.submitting == Submitting)
+            ]
+            []
+        , div []
+            [ button
+                [ class "btn-outline"
+                , onClick (SetListing nft model.price)
+                , disabled (model.submitting == Submitting)
+                ]
+                [ if model.submitting == Submitting then
+                    spinner
+
+                  else
+                    text "List for Sale"
+                ]
+            , if model.submitting == Submitting then
+                span [ class "ml-1" ] [ text <| "Submitting transaction..." ]
+
+              else
+                span [] []
+            ]
+        ]
 
 
 listingView : Model -> NFT -> Html Msg
 listingView model nft =
     case ( model.userAddress, nft.price ) of
-        ( Just addr, Nothing ) ->
+        ( ContentFound addr, Nothing ) ->
             case addr == nft.owner of
                 True ->
-                    div []
-                        [ div [] [ text "This one's yours!" ]
-                        , div [] [ text "Price (ETH)" ]
-                        , input
-                            [ type_ "text"
-                            , onInput PriceUpdated
-                            , value model.price
-                            , disabled (model.submitting == Submitting)
-                            ]
-                            []
-                        , div []
-                            [ button
-                                [ class "btn-outline"
-                                , onClick (SetListing nft model.price)
-                                , disabled (model.submitting == Submitting)
-                                ]
-                                [ if model.submitting == Submitting then
-                                    spinner
-
-                                  else
-                                    text "List for Sale"
-                                ]
-                            ]
-                        ]
+                    setPriceView model nft
 
                 False ->
                     div [] [ text "Not for Sale" ]
 
-        ( Just addr, Just price ) ->
+        ( ContentFound addr, Just price ) ->
             case addr == nft.owner of
                 True ->
                     div []
                         [ div [] [ text "This one's yours!" ]
                         , h3 [ class "text-red" ] [ text <| "Price: " ++ price ++ " ETH" ]
+                        , button [ class "btn-outline", onClick (RemoveListing nft) ]
+                            [ if model.submitting == Submitting then
+                                spinner
 
-                        --, button [ class "btn-outline", onClick (RemoveListing nft) ] [ text "Remove Price Listing" ]
+                              else
+                                text "Remove Price Listing"
+                            ]
+                        , if model.submitting == Submitting then
+                            span [ class "ml-1" ] [ text <| "Submitting transaction..." ]
+
+                          else
+                            span [] []
                         ]
 
                 False ->
@@ -444,14 +486,14 @@ listingView model nft =
                             ]
                         ]
 
-        ( Nothing, Just price ) ->
+        ( _, Just price ) ->
             div []
                 [ h3 [ class "text-red" ] [ text <| "Price: " ++ price ++ " ETH" ]
                 , button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ]
                 ]
 
-        ( Nothing, Nothing ) ->
-            div [] []
+        ( _, Nothing ) ->
+            div [] [ button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ] ]
 
 
 submitView : Model -> Html Msg
@@ -473,7 +515,7 @@ submitView model =
             div []
                 [ div []
                     [ case ( model.uploading, model.submitting ) of
-                        ( NotLoading, Submitting ) ->
+                        ( _, Submitting ) ->
                             span [] []
 
                         ( Loading, _ ) ->
@@ -493,17 +535,17 @@ submitView model =
                     ]
                 , errorView
                 , div []
-                    [ submitButton model ]
+                    [ submitNFTButton model ]
                 ]
 
 
-connectWalletView : Model -> Html Msg
-connectWalletView model =
-    case ( model.ethereumStatus, model.walletStatus ) of
-        ( Detecting, _ ) ->
+createNFTView : Model -> Html Msg
+createNFTView model =
+    case ( model.ethereumStatus, model.userAddress, model.submitting ) of
+        ( Detecting, _, _ ) ->
             div [] [ text "Detecting wallet..." ]
 
-        ( NotFound, _ ) ->
+        ( NotFound, _, _ ) ->
             div []
                 [ a
                     [ href "https://ethereum.org/en/wallets/find-wallet/"
@@ -512,57 +554,74 @@ connectWalletView model =
                     [ button [ class "btn-outline" ] [ text "Install a wallet" ] ]
                 ]
 
-        ( _, Detected ) ->
+        ( _, ContentFound _, _ ) ->
             submitView model
 
-        ( _, Detecting ) ->
+        ( _, _, Submitting ) ->
             button [ class "btn-outline", disabled True ] [ spinner ]
 
-        ( _, NotFound ) ->
+        ( _, _, _ ) ->
             button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ]
 
 
-layout : List (Html Msg) -> Html Msg
-layout content =
-    div [ class "page-wrapper" ] <|
-        [ a [ href "/" ] [ h1 [ class "mt-3 mb-1" ] [ text "Click and Mint!" ] ]
+contentView : Model -> Html Msg
+contentView model =
+    case model.route of
+        Route.NFT _ _ _ ->
+            nftPageView model
+
+        Route.Home ->
+            homePageView model
+
+        Route.NotFound ->
+            notFoundPageView
+
+
+homePageView : Model -> Html Msg
+homePageView model =
+    div []
+        [ createNFTView model
+        , NFT.listView Curation.list
         ]
-            ++ content
-            ++ [ copyright ]
+
+
+notFoundPageView : Html Msg
+notFoundPageView =
+    div [] [ text "Oops, how did you end up here?" ]
+
+
+nftPageView : Model -> Html Msg
+nftPageView model =
+    case model.nft of
+        NotRequested ->
+            span [] []
+
+        Requesting ->
+            div [] [ text "Loading NFT data..." ]
+
+        ContentFound nft ->
+            nftView model nft
+
+        ContentNotFound ->
+            div [] [ text "Not found" ]
 
 
 view : Model -> Html Msg
 view model =
-    let
-        content =
-            case model.route of
-                Route.NFT _ _ _ ->
-                    case model.nft of
-                        NotRequested ->
-                            span [] []
-
-                        Requesting ->
-                            div [] [ text "Loading NFT data..." ]
-
-                        ContentFound nft ->
-                            nftView model nft
-
-                        ContentNotFound ->
-                            div [] [ text "Not found" ]
-
-                _ ->
-                    div [] [ connectWalletView model, contentView ]
-    in
-    layout [ content ]
+    div [ class "page-wrapper" ]
+        [ headerView
+        , contentView model
+        , footerView
+        ]
 
 
-contentView : Html Msg
-contentView =
-    NFT.listView Curation.list
+headerView : Html Msg
+headerView =
+    a [ href "/" ] [ h1 [ class "mt-3 mb-1" ] [ text "Click and Mint!" ] ]
 
 
-copyright : Html Msg
-copyright =
+footerView : Html Msg
+footerView =
     div []
         [ div [ class "mt-3 text-right" ] [ a [ class "text-small", href "https://evanpiro.com" ] [ text "© Evan Piro 2023" ] ]
         ]
@@ -589,8 +648,8 @@ spinner =
     span [ class "loading" ] [ text " " ]
 
 
-submitButton : Model -> Html Msg
-submitButton model =
+submitNFTButton : Model -> Html Msg
+submitNFTButton model =
     case model.submitting of
         Disabled ->
             button
@@ -651,5 +710,7 @@ main =
                     , detectEthereumRes DetectEthereumRes
                     , buyListingRes BuyListingRes
                     , setListingRes SetListingRes
+                    , setListingRes SetListingRes
+                    , removeListingRes RemoveListingRes
                     ]
         }

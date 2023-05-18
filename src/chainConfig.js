@@ -3,17 +3,17 @@
 export const config = {
   5: {
     name: "goerli",
-    printNFTAddress: "0x82873514B4017d08c3932c4ce8A28A6f596F2050",
+    printNFTAddress: "0xc5E452E9F33D8480554d933E0DDf6272209DAA07",
     scanURL: "https://sepolia.etherscan.io",
   },
   11155111: {
     name: "sepolia",
-    printNFTAddress: "0x0BfDe5F9cE572F10Cc4073c70788604E49a6ddDC",
+    printNFTAddress: "0x27da9ADd025d554387f1e2EBAf59CE6Ee1Aa8d83",
     scanURL: "https://sepolia.etherscan.io",
   },
   80001: {
     name: "polygon",
-    printNFTAddress: "0xE3E8985f486A2Ed8cE7564FefA6F7594De8D10eF",
+    printNFTAddress: "0x6fD61bD183a8A06b0bEF2a293Cd1FC69AcC6b38b",
     scanURL: "https://mumbai.polygonscan.com",
   },
 };
