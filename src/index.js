@@ -15,6 +15,19 @@ const app = Elm.Main.init({
   flags: apiKey,
 });
 
+{
+  // The "any" network will allow spontaneous network changes
+  const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+  provider.on("network", (newNetwork, oldNetwork) => {
+    // When a Provider makes its initial connection, it emits a "network"
+    // event with a null oldNetwork along with the newNetwork. So, if the
+    // oldNetwork exists, it represents a changing network
+    if (oldNetwork) {
+      window.location.reload();
+    }
+  });
+}
+
 app.ports.detectEthereum.subscribe(async function () {
   app.ports.detectEthereumRes.send(!!window.ethereum);
 });
@@ -23,10 +36,11 @@ app.ports.detectWallet.subscribe(async function () {
   try {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
-    await provider.getNetwork();
+    const { chainId } = await provider.getNetwork();
+    const network = config[chainId].name;
     const signer = await provider.getSigner();
     const address = await signer.getAddress();
-    app.ports.walletFound.send(address);
+    app.ports.walletFound.send([network, address]);
   } catch (e) {
     app.ports.walletNotFound.send("");
   }

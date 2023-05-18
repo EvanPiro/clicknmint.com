@@ -53,7 +53,7 @@ port removeListingRes : (Maybe String -> msg) -> Sub msg
 port detectEthereumRes : (Bool -> msg) -> Sub msg
 
 
-port walletFound : (String -> msg) -> Sub msg
+port walletFound : (( String, String ) -> msg) -> Sub msg
 
 
 port mintRequested : String -> Cmd msg
@@ -110,7 +110,7 @@ contentStatusToMaybe c =
 
 
 type alias Model =
-    { userAddress : ContentStatus String
+    { wallet : ContentStatus ( String, String )
     , ethereumStatus : DetectionStatus
     , title : String
     , description : String
@@ -175,7 +175,7 @@ init apiKey url navKey =
       , navKey = navKey
       , route = Route.urlToRoute url
       , nft = nftRequestStatus
-      , userAddress = NotRequested
+      , wallet = NotRequested
       , price = ""
       }
     , Cmd.batch [ cmd, detectEthereum "" ]
@@ -201,7 +201,7 @@ type Msg
     | NFTMetadataUploadCompleted (Result Http.Error String)
     | ResetState
     | WalletNotFound
-    | WalletFound String
+    | WalletFound ( String, String )
     | DetectWallet
     | DetectEthereumRes Bool
     | GotNFTRes (Result Http.Error NFT)
@@ -260,18 +260,18 @@ update msg model =
             )
 
         DetectWallet ->
-            ( { model | userAddress = Requesting }, detectWallet "" )
+            ( { model | wallet = Requesting }, detectWallet "" )
 
         WalletNotFound ->
             ( { model
-                | userAddress = ContentNotFound
+                | wallet = ContentNotFound
               }
             , Cmd.none
             )
 
-        WalletFound address ->
+        WalletFound ( network, address ) ->
             ( { model
-                | userAddress = ContentFound address
+                | wallet = ContentFound ( network, address )
               }
             , Cmd.none
             )
@@ -406,94 +406,155 @@ nftView model nft =
         ]
 
 
-setPriceView : Model -> NFT -> Html Msg
-setPriceView model nft =
+checkNet : String -> String -> Maybe (Html Msg)
+checkNet currentNet nftNet =
+    case currentNet == nftNet of
+        True ->
+            Nothing
+
+        False ->
+            Just <|
+                div [ class "text-red text-small" ]
+                    [ text <|
+                        "You'll need to switch your network to "
+                            ++ nftNet
+                            ++ " to transact with this NFT. You're current on "
+                            ++ currentNet
+                            ++ "."
+                    ]
+
+
+setListingView : String -> Model -> NFT -> Html Msg
+setListingView network model nft =
     div []
         [ div [] [ text "This one's yours!" ]
-        , div [ class "mt-1" ] [ text "Price (ETH)" ]
-        , input
-            [ type_ "text"
-            , onInput PriceUpdated
-            , placeholder "Set price in ETH e.g 0.2"
-            , value model.price
-            , disabled (model.submitting == Submitting)
-            ]
-            []
-        , div []
-            [ button
-                [ class "btn-outline"
-                , onClick (SetListing nft model.price)
+        , if model.submitting == Submitting then
+            span [ class "ml-1" ] [ text <| "Submitting transaction..." ]
+
+          else
+            span [] []
+        , Maybe.withDefault
+            (div []
+                [ div [ class "mt-1" ] [ text "Price (ETH)" ]
+                , input
+                    [ type_ "text"
+                    , onInput PriceUpdated
+                    , placeholder "Set price in ETH e.g 0.2"
+                    , value model.price
+                    , disabled (model.submitting == Submitting)
+                    ]
+                    []
+                , div []
+                    [ button
+                        [ class "btn-outline"
+                        , onClick (SetListing nft model.price)
+                        , disabled (model.submitting == Submitting)
+                        ]
+                        [ if model.submitting == Submitting then
+                            spinner
+
+                          else
+                            text "List for Sale"
+                        ]
+                    ]
+                ]
+            )
+          <|
+            checkNet network nft.network
+        ]
+
+
+removeListingView : String -> Model -> NFT -> String -> Html Msg
+removeListingView network model nft price =
+    div []
+        [ div [] [ text "This one's yours!" ]
+        , h3 [ class "text-red" ] [ text <| "Price: " ++ price ++ " ETH" ]
+        , Maybe.withDefault
+            (div []
+                [ button [ class "btn-outline", onClick (RemoveListing nft) ]
+                    [ if model.submitting == Submitting then
+                        spinner
+
+                      else
+                        text "Remove Price Listing"
+                    ]
+                , if model.submitting == Submitting then
+                    span [ class "ml-1" ] [ text <| "Submitting transaction..." ]
+
+                  else
+                    span [] []
+                ]
+            )
+          <|
+            checkNet network nft.network
+        ]
+
+
+buyListingView : String -> Model -> NFT -> String -> Html Msg
+buyListingView network model nft price =
+    case checkNet network nft.network of
+        Just val ->
+            div []
+                [ h3 [ class "text-red" ] [ text <| "Price: " ++ price ++ " ETH" ]
+                , val
+                ]
+
+        Nothing ->
+            button
+                [ class "btn"
+                , onClick (BuyListing nft)
                 , disabled (model.submitting == Submitting)
                 ]
                 [ if model.submitting == Submitting then
                     spinner
 
                   else
-                    text "List for Sale"
+                    text <| "Buy for " ++ price ++ " ETH"
                 ]
-            , if model.submitting == Submitting then
-                span [ class "ml-1" ] [ text <| "Submitting transaction..." ]
 
-              else
-                span [] []
-            ]
+
+connectWalletWithPriceView : Model -> NFT -> String -> Html Msg
+connectWalletWithPriceView model nft price =
+    div []
+        [ h3 [ class "text-red" ] [ text <| "Price: " ++ price ++ " ETH" ]
+        , button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ]
         ]
+
+
+connectWalletWithoutPriceView : Model -> NFT -> Html Msg
+connectWalletWithoutPriceView model nft =
+    div [] [ button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ] ]
+
+
+notForSaleView : Html Msg
+notForSaleView =
+    div [] [ text "Not for Sale" ]
 
 
 listingView : Model -> NFT -> Html Msg
 listingView model nft =
-    case ( model.userAddress, nft.price ) of
-        ( ContentFound addr, Nothing ) ->
+    case ( model.wallet, nft.price ) of
+        ( ContentFound ( network, addr ), Nothing ) ->
             case addr == nft.owner of
                 True ->
-                    setPriceView model nft
+                    setListingView network model nft
 
                 False ->
-                    div [] [ text "Not for Sale" ]
+                    notForSaleView
 
-        ( ContentFound addr, Just price ) ->
+        ( ContentFound ( network, addr ), Just price ) ->
             case addr == nft.owner of
                 True ->
-                    div []
-                        [ div [] [ text "This one's yours!" ]
-                        , h3 [ class "text-red" ] [ text <| "Price: " ++ price ++ " ETH" ]
-                        , button [ class "btn-outline", onClick (RemoveListing nft) ]
-                            [ if model.submitting == Submitting then
-                                spinner
-
-                              else
-                                text "Remove Price Listing"
-                            ]
-                        , if model.submitting == Submitting then
-                            span [ class "ml-1" ] [ text <| "Submitting transaction..." ]
-
-                          else
-                            span [] []
-                        ]
+                    removeListingView network model nft price
 
                 False ->
-                    div []
-                        [ button
-                            [ class "btn-outline"
-                            , onClick (BuyListing nft)
-                            , disabled (model.submitting == Submitting)
-                            ]
-                            [ if model.submitting == Submitting then
-                                spinner
-
-                              else
-                                text <| "Buy for " ++ price ++ " ETH"
-                            ]
-                        ]
+                    buyListingView network model nft price
 
         ( _, Just price ) ->
-            div []
-                [ h3 [ class "text-red" ] [ text <| "Price: " ++ price ++ " ETH" ]
-                , button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ]
-                ]
+            connectWalletWithPriceView model nft price
 
         ( _, Nothing ) ->
-            div [] [ button [ class "btn-outline", onClick DetectWallet ] [ text "Connect Wallet" ] ]
+            connectWalletWithoutPriceView model nft
 
 
 submitView : Model -> Html Msg
@@ -541,7 +602,7 @@ submitView model =
 
 createNFTView : Model -> Html Msg
 createNFTView model =
-    case ( model.ethereumStatus, model.userAddress, model.submitting ) of
+    case ( model.ethereumStatus, model.wallet, model.submitting ) of
         ( Detecting, _, _ ) ->
             div [] [ text "Detecting wallet..." ]
 

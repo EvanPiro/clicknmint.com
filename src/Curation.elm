@@ -19,7 +19,16 @@ import NFT exposing (NFT)
 
 list : List NFT
 list =
-    [ { network = "sepolia"
+    [ { network = "goerli"
+      , contractAddress = "0xc5E452E9F33D8480554d933E0DDf6272209DAA07"
+      , tokenId = "16"
+      , title = "Tequila Sunrise"
+      , description = "MS Paint 2023"
+      , image = "https://cloudflare-ipfs.com/ipfs/bafkreigqhwytpndh5rttb4eyio6axsjiuuyz5tqp354dielzvg6223tpyi"
+      , price = Nothing
+      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
+      }
+    , { network = "sepolia"
       , contractAddress = "0x27da9ADd025d554387f1e2EBAf59CE6Ee1Aa8d83"
       , tokenId = "1"
       , title = "Cadence"
@@ -88,15 +97,6 @@ list =
       , title = "Disambuation"
       , description = "MS Paint 2023"
       , image = "https://cloudflare-ipfs.com/ipfs/bafkreiaquiyls7oaag5hubgdjckhusry2asm5ipstepeiclpv4uftnbtca"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "16"
-      , title = "Tequila Sunrise"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreigqhwytpndh5rttb4eyio6axsjiuuyz5tqp354dielzvg6223tpyi"
       , price = Nothing
       , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
       }
