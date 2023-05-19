@@ -5,9 +5,7 @@ module NFT exposing
     , buildMetadata
     , decoder
     , encodeMetadata
-    , getMetadata
     , listView
-    , metadataDecoder
     , nftPartsToPath
     , view
     )
@@ -81,31 +79,6 @@ nftImg image =
         ]
 
 
-{-| Decoder to decode a JSON body into NFTMetadata with the following structure:
-
-{
-title: "Apple King",
-description: "MSPaint",
-image: "<https://cloudflare-ipfs.com/ipfs/bafkreif2fgiihlkvnbcgjdzejqrfxvbgbwt2ktwzyzhy3fnjgewscgfvwi">
-}
-
--}
-metadataDecoder : D.Decoder Metadata
-metadataDecoder =
-    D.map3 Metadata
-        (D.field "title" D.string)
-        (D.field "description" D.string)
-        (D.field "image" D.string)
-
-
-getMetadata : String -> (Result Http.Error Metadata -> msg) -> Cmd msg
-getMetadata cid gotNFTMetadataMsg =
-    Http.get
-        { url = Storage.cidToFileUrl cid
-        , expect = Http.expectJson gotNFTMetadataMsg metadataDecoder
-        }
-
-
 blockDataView : NFT -> Html msg
 blockDataView nft =
     div [ class "text-small" ]
@@ -126,10 +99,19 @@ nftPartsToPath network contractAddress tokenId =
     "/" ++ network ++ "/" ++ contractAddress ++ "/" ++ tokenId
 
 
-view : NFT -> Html msg
-view model =
+view : Bool -> NFT -> Html msg
+view isTeaser model =
+    let
+        fileView =
+            case isTeaser of
+                True ->
+                    a [ href <| nftToPath model ] [ nftImg model.image ]
+
+                False ->
+                    nftImg model.image
+    in
     div [ class "my-1", id model.image ]
-        [ a [ href <| nftToPath model ] [ nftImg model.image ]
+        [ fileView
         , h4 [] [ text model.title ]
         , div [] [ text model.description ]
         ]
@@ -145,6 +127,6 @@ listView nfts =
             div []
                 [ div [ class "mt-3" ]
                     [ h2 [] [ text "Collection" ]
-                    , div [] <| List.map view nfts
+                    , div [] <| List.map (view True) nfts
                     ]
                 ]

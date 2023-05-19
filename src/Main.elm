@@ -401,7 +401,7 @@ nftView : Model -> NFT -> Html Msg
 nftView model nft =
     div [ id (nft.contractAddress ++ nft.tokenId) ]
         [ div [ class "mt-1" ] [ listingView model nft ]
-        , NFT.view nft
+        , NFT.view False nft
         , NFT.blockDataView nft
         ]
 
