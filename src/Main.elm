@@ -429,7 +429,7 @@ setListingView network model nft =
     div []
         [ div [] [ text "This one's yours!" ]
         , if model.submitting == Submitting then
-            span [ class "ml-1" ] [ text <| "Submitting transaction..." ]
+            span [ class "mt-1" ] [ text <| "Submitting transaction..." ]
 
           else
             span [] []

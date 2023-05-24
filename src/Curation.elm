@@ -19,139 +19,103 @@ import NFT exposing (NFT)
 
 list : List NFT
 list =
-    [ { network = "goerli"
-      , contractAddress = "0xc5E452E9F33D8480554d933E0DDf6272209DAA07"
-      , tokenId = "2"
-      , title = "Tequila Sunrise"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreigqhwytpndh5rttb4eyio6axsjiuuyz5tqp354dielzvg6223tpyi"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0x27da9ADd025d554387f1e2EBAf59CE6Ee1Aa8d83"
+    [ { network = "sepolia"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
       , tokenId = "1"
-      , title = "Cadence"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreif2kcnlsa74d4us33wngjnmm6ae6cc52sqa4l4zpoxrzaj7uqj4n4"
-      , price = Nothing
-      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0x0BfDe5F9cE572F10Cc4073c70788604E49a6ddDC"
-      , tokenId = "0"
       , title = "Cow in a Sunset"
-      , description = "MS Paint 2023"
+      , description = "JS Paint 2023"
       , image = "https://cloudflare-ipfs.com/ipfs/bafkreibx7gmbids5ozyyd3vkispugfmkrcsm5kb7lpg3ovsko6fg6y6pfa"
       , price = Nothing
       , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
       }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "22"
-      , title = "Lambmeter"
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreigk6qqdlmbovkatj2smw5dkx7glq4ic5w56ydg32wqazwmf66u56i"
+      , tokenId = "2"
+      , title = "Laughter"
+      , network = "sepolia"
       , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreifrnvgqnsfpwk2luoet3i3tvb3fet7b73prnk3mnlaugysg3offle"
       , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
       }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "21"
-      , title = "Body Quest"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreier7xciixmfazagxmu7gswci6ydtcnbztxwczripvvnmhpnnmhi2a"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "20"
-      , title = "Jeans"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreiezuxtmxlqs4mdclcgm2tezpfsf73z7yavh2abyqmdyt7ekhgakiu"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "goerli"
-      , contractAddress = "0x25b6364A5979e0e7C2ca3124d3b5d0A365EF1259"
-      , tokenId = "0"
-      , title = "Piano"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreiau7qvi4zkai54e4kpahbkwcdm46bzrppiz6yqqex3aqla4olzbzm"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "19"
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreiajbtv5l477zvdqy4ye5u5glh7sgf4ij35uzolkyaotjk76mtacum"
+      , tokenId = "3"
       , title = "Candor"
+      , network = "sepolia"
       , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreiajbtv5l477zvdqy4ye5u5glh7sgf4ij35uzolkyaotjk76mtacum"
       , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
       }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "17"
-      , title = "Disambuation"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreiaquiyls7oaag5hubgdjckhusry2asm5ipstepeiclpv4uftnbtca"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "15"
-      , title = "Horse Crow"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreigk6qqdlmbovkatj2smw5dkx7glq4ic5w56ydg32wqazwmf66u56i"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "11"
-      , title = "Vessel"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreifmiiuorrq3rctrkvsx4hhvk3lcztgca6654n4ukhpt4dndfgg3na"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "6"
-      , title = "Figures"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreid4novsnog4puxw5yhtanm33kfkszocfic3xqum3mmdglvawo6z54"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "7"
-      , title = "Orbs"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreieob5vjosghtgtqmcfjosw7mgi3n2rcwkz23xchfwttmuxo6yj2k4"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "8"
-      , title = "The Golden Ratio"
-      , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreids5nicikug7bmleipftmkud2v4detmwiipjru35m23jgv56ee2zq"
-      , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
-      }
-    , { network = "sepolia"
-      , contractAddress = "0xa47d17727fDe3826d92A77BE2f83F6fb1d7254e8"
-      , tokenId = "10"
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreigupts7gjtvnimkpv4vqskmgypennzqgiwuaqgyisgcsmeaxy6niy"
+      , tokenId = "4"
       , title = "Spar"
+      , network = "sepolia"
       , description = "MS Paint 2023"
-      , image = "https://cloudflare-ipfs.com/ipfs/bafkreigupts7gjtvnimkpv4vqskmgypennzqgiwuaqgyisgcsmeaxy6niy"
       , price = Nothing
-      , owner = "0x1A22f8e327adD0320d7ea341dFE892e43bC60322"
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
+      }
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreid4novsnog4puxw5yhtanm33kfkszocfic3xqum3mmdglvawo6z54"
+      , tokenId = "5"
+      , title = "Working Man"
+      , network = "sepolia"
+      , description = "MS Paint 2023"
+      , price = Nothing
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
+      }
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreieob5vjosghtgtqmcfjosw7mgi3n2rcwkz23xchfwttmuxo6yj2k4"
+      , tokenId = "6"
+      , title = "Eucharists"
+      , network = "sepolia"
+      , description = "MS Paint 2023"
+      , price = Nothing
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
+      }
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreifmiiuorrq3rctrkvsx4hhvk3lcztgca6654n4ukhpt4dndfgg3na"
+      , tokenId = "7"
+      , title = "The Vessel"
+      , network = "sepolia"
+      , description = "MS Paint 2023"
+      , price = Nothing
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
+      }
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreigqhwytpndh5rttb4eyio6axsjiuuyz5tqp354dielzvg6223tpyi"
+      , tokenId = "8"
+      , title = "Tequila Sunrise"
+      , network = "sepolia"
+      , description = "MS Paint 2023"
+      , price = Nothing
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
+      }
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreif2kcnlsa74d4us33wngjnmm6ae6cc52sqa4l4zpoxrzaj7uqj4n4"
+      , tokenId = "9"
+      , title = "Cadence"
+      , network = "sepolia"
+      , description = "MS Paint 2023"
+      , price = Nothing
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
+      }
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreiau7qvi4zkai54e4kpahbkwcdm46bzrppiz6yqqex3aqla4olzbzm"
+      , tokenId = "10"
+      , title = "Pianoman"
+      , network = "sepolia"
+      , description = "MS Paint 2023"
+      , price = Nothing
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
+      }
+    , { image = "https://cloudflare-ipfs.com/ipfs/bafkreiezuxtmxlqs4mdclcgm2tezpfsf73z7yavh2abyqmdyt7ekhgakiu"
+      , tokenId = "11"
+      , title = "Angela"
+      , network = "sepolia"
+      , description = "MS Paint 2023"
+      , price = Nothing
+      , owner = "0x5c57Afeb070B0F089E4DeDE58deF524143D1b54d"
+      , contractAddress = "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5"
       }
     ]

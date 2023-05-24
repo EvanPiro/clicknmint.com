@@ -3,12 +3,12 @@
 export const config = {
   5: {
     name: "goerli",
-    printNFTAddress: "0xc5E452E9F33D8480554d933E0DDf6272209DAA07",
-    scanURL: "https://sepolia.etherscan.io",
+    printNFTAddress: "0x1A2D93512E47fd49213957714F136E2a78eC4f45",
+    scanURL: "https://goerli.etherscan.io",
   },
   11155111: {
     name: "sepolia",
-    printNFTAddress: "0x27da9ADd025d554387f1e2EBAf59CE6Ee1Aa8d83",
+    printNFTAddress: "0xDC62D45d5C96CAFB749b5D46624E30d252C3ddb5",
     scanURL: "https://sepolia.etherscan.io",
   },
   80001: {
