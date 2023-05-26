@@ -10,7 +10,7 @@ module NFT exposing
     , view
     )
 
-import Html exposing (Html, a, div, h2, h4, img, text)
+import Html exposing (Html, a, div, h2, h4, img, span, text)
 import Html.Attributes exposing (class, href, id, src)
 import Http
 import Json.Decode as D
@@ -110,10 +110,12 @@ view isTeaser model =
                 False ->
                     nftImg model.image
     in
-    div [ class "my-1", id model.image ]
+    div [ class "my-3", id model.image ]
         [ fileView
-        , h4 [] [ text model.title ]
-        , div [] [ text model.description ]
+        , div [ class "mb-1 line-height-large" ]
+            [ div [ class "text-italic" ] [ text model.title ]
+            , div [] [ text model.description ]
+            ]
         ]
 
 

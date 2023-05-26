@@ -12,7 +12,7 @@ export const config = {
     scanURL: "https://sepolia.etherscan.io",
   },
   80001: {
-    name: "polygon",
+    name: "mumbai",
     printNFTAddress: "0x6fD61bD183a8A06b0bEF2a293Cd1FC69AcC6b38b",
     scanURL: "https://mumbai.polygonscan.com",
   },

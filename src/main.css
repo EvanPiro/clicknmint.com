@@ -100,11 +100,24 @@ a {
   margin-top: 5rem;
 }
 
-
+.mb-2 {
+  margin-bottom: 2rem;
+}
 .my-1 {
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
+
+.my-2 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.my-3 {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
 .btn {
   border-radius: 10px;
   border-width: 1px;
@@ -167,10 +180,27 @@ h4 {
   font-size: .75rem;
 }
 
+.text-large {
+  font-size: 1.5rem;
+}
+
+
 .link {
   cursor: pointer;
 }
 
 .link:hover {
   text-decoration: underline;
+}
+
+.text-bold {
+  font-weight: bold;
+}
+
+.text-italic {
+  font-style: italic;
+}
+
+.line-height-large {
+  line-height: 1.5rem;
 }

@@ -286,9 +286,14 @@ update msg model =
 
         MintRequestSucceeded { network, contractAddress, tokenId } ->
             ( { model
-                | submitting = Submitted
+                | submitting = Ready
                 , route = Route.NFT network contractAddress tokenId
                 , nft = Requesting
+                , description = ""
+                , title = ""
+                , image = ""
+                , fileCID = ""
+                , nftCID = ""
               }
             , Cmd.batch
                 [ pushUrl model.navKey <|
