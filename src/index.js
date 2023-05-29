@@ -40,8 +40,10 @@ app.ports.detectWallet.subscribe(async function () {
     const network = config[chainId].name;
     const signer = await provider.getSigner();
     const address = await signer.getAddress();
+    console.log("wallet detected");
     app.ports.walletFound.send([network, address]);
   } catch (e) {
+    console.log("wallet not detected");
     app.ports.walletNotFound.send("");
   }
 });
